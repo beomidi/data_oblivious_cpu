@@ -1,0 +1,328 @@
+diff --git a/liboath/gl/Makefile.in b/liboath/gl/Makefile.in
+index 873c84d..10972ca 100644
+--- a/liboath/gl/Makefile.in
++++ b/liboath/gl/Makefile.in
+@@ -396,7 +396,7 @@ am_libgnu_la_OBJECTS = libgnu_la-base32.lo libgnu_la-basename-lgpl.lo \
+ 	$(am__objects_39) $(am__objects_40) $(am__objects_41) \
+ 	$(am__objects_42) libgnu_la-sys_socket.lo $(am__objects_43) \
+ 	libgnu_la-u64.lo libgnu_la-unistd.lo $(am__objects_44) \
+-	libgnu_la-xsize.lo
++	libgnu_la-xsize.lo context.lo
+ libgnu_la_OBJECTS = $(am_libgnu_la_OBJECTS)
+ AM_V_lt = $(am__v_lt_@AM_V@)
+ am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+@@ -454,6 +454,7 @@ am__depfiles_remade = ./$(DEPDIR)/libgnu_la-af_alg.Plo \
+ 	./$(DEPDIR)/libgnu_la-hmac-sha256.Plo \
+ 	./$(DEPDIR)/libgnu_la-hmac-sha512.Plo \
+ 	./$(DEPDIR)/libgnu_la-hmac.Plo \
++	./$(DEPDIR)/libgnu_la-context.Plo \
+ 	./$(DEPDIR)/libgnu_la-ialloc.Plo \
+ 	./$(DEPDIR)/libgnu_la-itold.Plo \
+ 	./$(DEPDIR)/libgnu_la-lseek.Plo \
+@@ -1865,6 +1866,7 @@ distclean-compile:
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgnu_la-hmac-sha256.Plo@am__quote@ # am--include-marker
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgnu_la-hmac-sha512.Plo@am__quote@ # am--include-marker
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgnu_la-hmac.Plo@am__quote@ # am--include-marker
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgnu_la-context.Plo@am__quote@ # am--include-marker
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgnu_la-ialloc.Plo@am__quote@ # am--include-marker
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgnu_la-itold.Plo@am__quote@ # am--include-marker
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgnu_la-lseek.Plo@am__quote@ # am--include-marker
+@@ -2470,6 +2472,14 @@ libgnu_la-hmac.lo: hmac.c
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+ @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgnu_la_CFLAGS) $(CFLAGS) -c -o libgnu_la-hmac.lo `test -f 'hmac.c' || echo '$(srcdir)/'`hmac.c
+ 
++libgnu_la-context.lo: context.c
++@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgnu_la_CFLAGS) $(CFLAGS) -MT libgnu_la-context.lo -MD -MP -MF $(DEPDIR)/libgnu_la-context.Tpo -c -o libgnu_la-context.lo `test -f 'context.c' || echo '$(srcdir)/'`context.c 
++@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgnu_la-context.Tpo $(DEPDIR)/libgnu_la-context.Plo
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='context.c' object='libgnu_la-context.lo' libtool=yes @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgnu_la_CFLAGS) $(CFLAGS) -c -o libgnu_la-context.lo `test -f 'context.c' || echo '$(srcdir)/'`context.c
++
++
+ libgnu_la-fopen.lo: fopen.c
+ @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgnu_la_CFLAGS) $(CFLAGS) -MT libgnu_la-fopen.lo -MD -MP -MF $(DEPDIR)/libgnu_la-fopen.Tpo -c -o libgnu_la-fopen.lo `test -f 'fopen.c' || echo '$(srcdir)/'`fopen.c
+ @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libgnu_la-fopen.Tpo $(DEPDIR)/libgnu_la-fopen.Plo
+@@ -2782,6 +2792,7 @@ distclean: distclean-recursive
+ 	-rm -f ./$(DEPDIR)/libgnu_la-hmac-sha256.Plo
+ 	-rm -f ./$(DEPDIR)/libgnu_la-hmac-sha512.Plo
+ 	-rm -f ./$(DEPDIR)/libgnu_la-hmac.Plo
++	-rm -f ./$(DEPDIR)/libgnu_la-context.Plo
+ 	-rm -f ./$(DEPDIR)/libgnu_la-ialloc.Plo
+ 	-rm -f ./$(DEPDIR)/libgnu_la-itold.Plo
+ 	-rm -f ./$(DEPDIR)/libgnu_la-lseek.Plo
+@@ -2911,6 +2922,7 @@ maintainer-clean: maintainer-clean-recursive
+ 	-rm -f ./$(DEPDIR)/libgnu_la-hmac-sha256.Plo
+ 	-rm -f ./$(DEPDIR)/libgnu_la-hmac-sha512.Plo
+ 	-rm -f ./$(DEPDIR)/libgnu_la-hmac.Plo
++	-rm -f ./$(DEPDIR)/libgnu_la-context.Plo
+ 	-rm -f ./$(DEPDIR)/libgnu_la-ialloc.Plo
+ 	-rm -f ./$(DEPDIR)/libgnu_la-itold.Plo
+ 	-rm -f ./$(DEPDIR)/libgnu_la-lseek.Plo
+diff --git a/liboath/gl/base32.c b/liboath/gl/base32.c
+index 50f9d42..23bc9d0 100644
+--- a/liboath/gl/base32.c
++++ b/liboath/gl/base32.c
+@@ -52,6 +52,8 @@
+ 
+ #include <string.h>
+ 
++#include "context.h"
++
+ /* Convert 'char' to 'unsigned char' without casting.  */
+ static unsigned char
+ to_uchar (char ch)
+@@ -567,14 +569,16 @@ base32_decode_alloc_ctx (struct base32_decode_context *ctx,
+      input is padded with one or more "=".
+      Shifting before multiplying avoids the possibility of overflow.  */
+   idx_t needlen = 5 * ((inlen >> 3) + 1);
+-
+-  *out = imalloc (needlen);
++  
++  nouarch_secure_heap(1);
++  *out = malloc_nouarch (needlen);
+   if (!*out)
+     return true;
+ 
+   if (!base32_decode_ctx (ctx, in, inlen, *out, &needlen))
+     {
+-      free (*out);
++      free_nouarch (*out);
++      nouarch_secure_heap(0);
+       *out = NULL;
+       return false;
+     }
+diff --git a/liboath/gl/hmac.c b/liboath/gl/hmac.c
+index 0be03fc..4e439d1 100644
+--- a/liboath/gl/hmac.c
++++ b/liboath/gl/hmac.c
+@@ -18,6 +18,8 @@
+ 
+ #include "memxor.h"
+ 
++#include "context.h"
++
+ #define IPAD 0x36
+ #define OPAD 0x5c
+ 
+@@ -43,16 +45,18 @@ hmac_hash (const void *key, size_t keylen,
+            const void *in, size_t inlen,
+            int pad, void *resbuf)
+ {
+-  struct GL_HMAC_CTX hmac_ctx;
++  nouarch_secure_heap(1);
++  struct GL_HMAC_CTX *hmac_ctx = malloc_nouarch(sizeof(struct GL_HMAC_CTX));
++  nouarch_secure_heap(0);
+   char block[GL_HMAC_BLOCKSIZE];
+ 
+   memset (block, pad, sizeof block);
+   memxor (block, key, keylen);
+ 
+-  GL_HMAC_FN_INIT (&hmac_ctx);
+-  GL_HMAC_FN_BLOC (block, sizeof block, &hmac_ctx);
+-  GL_HMAC_FN_PROC (in, inlen, &hmac_ctx);
+-  GL_HMAC_FN_FINI (&hmac_ctx, resbuf);
++  GL_HMAC_FN_INIT (hmac_ctx);
++  GL_HMAC_FN_BLOC (block, sizeof block, hmac_ctx);
++  GL_HMAC_FN_PROC (in, inlen, hmac_ctx);
++  GL_HMAC_FN_FINI (hmac_ctx, resbuf);
+ }
+ 
+ int
+@@ -65,11 +69,13 @@ GL_HMAC_FN (const void *key, size_t keylen,
+   /* Ensure key size is <= block size.  */
+   if (keylen > GL_HMAC_BLOCKSIZE)
+     {
+-      struct GL_HMAC_CTX keyhash;
++      nouarch_secure_heap(1);
++      struct GL_HMAC_CTX *keyhash = malloc_nouarch(sizeof(struct GL_HMAC_CTX));
++      nouarch_secure_heap(0);
+ 
+-      GL_HMAC_FN_INIT (&keyhash);
+-      GL_HMAC_FN_PROC (key, keylen, &keyhash);
+-      GL_HMAC_FN_FINI (&keyhash, optkeybuf);
++      GL_HMAC_FN_INIT (keyhash);
++      GL_HMAC_FN_PROC (key, keylen, keyhash);
++      GL_HMAC_FN_FINI (keyhash, optkeybuf);
+ 
+       key = optkeybuf;
+       /* zero padding of the key to the block size
+diff --git a/liboath/gl/sha1.c b/liboath/gl/sha1.c
+index 80f0b7a..6cf917c 100644
+--- a/liboath/gl/sha1.c
++++ b/liboath/gl/sha1.c
+@@ -23,6 +23,7 @@
+ 
+ #include <config.h>
+ 
++
+ /* Specification.  */
+ #if HAVE_OPENSSL_SHA1
+ # define GL_OPENSSL_INLINE _GL_EXTERN_INLINE
+@@ -32,6 +33,8 @@
+ #include <stdint.h>
+ #include <string.h>
+ 
++#include "context.h"
++
+ #include <byteswap.h>
+ #ifdef WORDS_BIGENDIAN
+ # define SWAP(n) (n)
+@@ -224,7 +227,9 @@ sha1_process_block (const void *buffer, size_t len, struct sha1_ctx *ctx)
+   const uint32_t *words = buffer;
+   size_t nwords = len / sizeof (uint32_t);
+   const uint32_t *endp = words + nwords;
+-  uint32_t x[16];
++  nouarch_secure_heap(1);
++  uint32_t* x = calloc_nouarch(16, sizeof(uint32_t)); //[16];
++  nouarch_secure_heap(0);
+   uint32_t a = ctx->A;
+   uint32_t b = ctx->B;
+   uint32_t c = ctx->C;
+@@ -348,6 +353,8 @@ sha1_process_block (const void *buffer, size_t len, struct sha1_ctx *ctx)
+       d = ctx->D += d;
+       e = ctx->E += e;
+     }
++    
++    free_nouarch(x);
+ }
+ 
+ #endif
+diff --git a/oathtool/Makefile.in b/oathtool/Makefile.in
+index 7d39094..f8352f1 100644
+--- a/oathtool/Makefile.in
++++ b/oathtool/Makefile.in
+@@ -193,7 +193,7 @@ am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)"
+ PROGRAMS = $(bin_PROGRAMS)
+ LTLIBRARIES = $(noinst_LTLIBRARIES)
+ liboathtool_cmd_la_DEPENDENCIES = gl/libgnu.la
+-am__objects_1 = liboathtool_cmd_la-oathtool_cmd.lo
++am__objects_1 = liboathtool_cmd_la-oathtool_cmd.lo liboathtool_cmd_la-context.lo
+ am_liboathtool_cmd_la_OBJECTS = $(am__objects_1)
+ liboathtool_cmd_la_OBJECTS = $(am_liboathtool_cmd_la_OBJECTS)
+ AM_V_lt = $(am__v_lt_@AM_V@)
+@@ -327,7 +327,7 @@ am__DIST_COMMON = $(dist_man_MANS) $(srcdir)/Makefile.in \
+ 	$(top_srcdir)/build-aux/missing COPYING build-aux/ar-lib \
+ 	build-aux/compile build-aux/config.guess build-aux/config.sub \
+ 	build-aux/depcomp build-aux/install-sh build-aux/ltmain.sh \
+-	build-aux/missing
++	build-aux/missing build-aux/ylwrap
+ DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
+ distdir = $(PACKAGE)-$(VERSION)
+ top_distdir = $(distdir)
+@@ -419,7 +419,6 @@ ERRNO_H = @ERRNO_H@
+ ETAGS = @ETAGS@
+ EXEEXT = @EXEEXT@
+ FGREP = @FGREP@
+-FILECMD = @FILECMD@
+ FLOAT_H = @FLOAT_H@
+ GL_CFLAG_ALLOW_WARNINGS = @GL_CFLAG_ALLOW_WARNINGS@
+ GL_CFLAG_GNULIB_WARNINGS = @GL_CFLAG_GNULIB_WARNINGS@
+@@ -1365,7 +1364,7 @@ top_srcdir = @top_srcdir@
+ SUBDIRS = gl . tests
+ ACLOCAL_AMFLAGS = -I gl/m4
+ AM_CPPFLAGS = -I$(builddir)/../liboath -I$(srcdir)/gl -I$(builddir)/gl
+-oathtool_SOURCES = oathtool.c
++oathtool_SOURCES = oathtool.c context.c
+ oathtool_LDADD = ../liboath/liboath.la gl/libgnu.la liboathtool_cmd.la
+ noinst_LTLIBRARIES = liboathtool_cmd.la
+ BUILT_SOURCES = oathtool_cmd.c oathtool_cmd.h
+@@ -1539,6 +1538,13 @@ liboathtool_cmd_la-oathtool_cmd.lo: oathtool_cmd.c
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+ @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(liboathtool_cmd_la_CFLAGS) $(CFLAGS) -c -o liboathtool_cmd_la-oathtool_cmd.lo `test -f 'oathtool_cmd.c' || echo '$(srcdir)/'`oathtool_cmd.c
+ 
++liboathtool_cmd_la-context.lo: context.c
++@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcontext_la_CFLAGS) $(CFLAGS) -MT liboathtool_cmd_la-context.lo -MD -MP -MF $(DEPDIR)/liboathtool_cmd_la-context.Tpo -c -o liboathtool_cmd_la-context.lo `test -f 'context.c' || echo '$(srcdir)/'`context.c
++@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liboathtool_cmd_la-context.Tpo $(DEPDIR)/liboathtool_cmd_la-context.Plo
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='context.c' object='liboathtool_cmd_la-context.lo' libtool=yes @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(liboathtool_cmd_la_CFLAGS) $(CFLAGS) -c -o liboathtool_cmd_la-context.lo `test -f 'context.c' || echo '$(srcdir)/'`context.c
++
+ mostlyclean-libtool:
+ 	-rm -f *.lo
+ 
+@@ -2048,7 +2054,7 @@ oathtool_cmd.h oathtool_cmd.c: oathtool.ggo Makefile.am
+ 	perl -pi -e 's/  long long int/  unsigned long long int/g' oathtool_cmd.h oathtool_cmd.c && \
+ 	perl -pi -e 's/int\) strtoll /int\) strtoull /' oathtool_cmd.c
+ 
+-oathtool.1: $(srcdir)/oathtool.c $(srcdir)/oathtool.ggo $(srcdir)/oathtool.h2m $(srcdir)/configure.ac
++oathtool.1: $(srcdir)/oathtool.c $(srcdir)/context.c $(srcdir)/oathtool.ggo $(srcdir)/oathtool.h2m $(srcdir)/configure.ac
+ 	$(MAKE) $(builddir)/oathtool$(EXEEXT)
+ 	$(AM_V_GEN)$(HELP2MAN) \
+ 		--include $(srcdir)/oathtool.h2m \
+diff --git a/oathtool/oathtool.1 b/oathtool/oathtool.1
+index 480e399..b981962 100644
+--- a/oathtool/oathtool.1
++++ b/oathtool/oathtool.1
+@@ -1,11 +1,14 @@
+-.\" DO NOT MODIFY THIS FILE!  It was generated by help2man 1.49.1.
+-.TH OATHTOOL "1" "July 2023" "OATH Toolkit 2.6.9" "User Commands"
++.\" DO NOT MODIFY THIS FILE!  It was generated by help2man 1.49.3.
++.TH OATHTOOL "1" "August 2024" "[context] active, took 26067919 cycles" "User Commands"
+ .SH NAME
+ oathtool \- Open AuTHentication (OATH) one-time password tool
+ .SH SYNOPSIS
+ .B oathtool
+ [\fI\,OPTION\/\fR]... [\fI\,KEY \/\fR[\fI\,OTP\/\fR]]...
+ .SH DESCRIPTION
++[context] active, took 23834632 cycles
++[context] active, took 8830433 cycles
++.PP
+ Generate and validate OATH one\-time passwords.  KEY and OTP is the string '\-'
+ to read from standard input, '@FILE' to read from indicated filename, or a hex
+ encoded value (not recommended on multi\-user systems).
+@@ -242,9 +245,14 @@ Report bugs to: oath\-toolkit\-help@nongnu.org
+ oathtool home page: <https://www.nongnu.org/oath\-toolkit/>
+ .br
+ General help using GNU software: <https://www.gnu.org/gethelp/>
+-.SH COPYRIGHT
++.PP
++[context] active, took 8963260 cycles
++oathtool (OATH Toolkit) 2.6.9
++.br
+ Copyright \(co 2009\-2023 Simon Josefsson.
++.br
+ License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
+ .br
+ This is free software: you are free to change and redistribute it.
++.br
+ There is NO WARRANTY, to the extent permitted by law.
+diff --git a/oathtool/oathtool.c b/oathtool/oathtool.c
+index c8fa737..beb560c 100644
+--- a/oathtool/oathtool.c
++++ b/oathtool/oathtool.c
+@@ -35,6 +35,7 @@
+ #include "parse-duration.h"
+ #include "parse-datetime.h"
+ 
++#include "context.h"
+ #include "oathtool_cmd.h"
+ 
+ const char version_etc_copyright[] =
+@@ -225,6 +226,7 @@ main (int argc, char *argv[])
+ 
+   if (args_info.base32_flag)
+     {
++      printf("base32\n");
+       rc = oath_base32_decode (inputs[0],
+ 			       strlen (inputs[0]), &secret, &secretlen);
+       if (rc != OATH_OK)
+@@ -234,7 +236,8 @@ main (int argc, char *argv[])
+   else
+     {
+       secretlen = 1 + strlen (inputs[0]) / 2;
+-      secret = malloc (secretlen);
++      nouarch_secure_heap(1);
++      secret = malloc_nouarch (secretlen);
+       if (!secret)
+ 	error (EXIT_FAILURE, errno, "malloc");
+ 
+@@ -406,7 +409,8 @@ main (int argc, char *argv[])
+       printf ("%d\n", rc);
+     }
+ 
+-  free (secret);
++  free_nouarch (secret);
++  nouarch_secure_heap(0);
+   oath_done ();
+ 
+   return EXIT_SUCCESS;

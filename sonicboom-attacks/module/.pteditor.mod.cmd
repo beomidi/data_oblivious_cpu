@@ -1,0 +1,1 @@
+cmd_/home/behnam/Documents/riscv-spectre/paper/Oblivious-CPU/sonicboom-attacks/module/pteditor.mod := printf '%s\n'   pteditor.o | awk '!x[$$0]++ { print("/home/behnam/Documents/riscv-spectre/paper/Oblivious-CPU/sonicboom-attacks/module/"$$0) }' > /home/behnam/Documents/riscv-spectre/paper/Oblivious-CPU/sonicboom-attacks/module/pteditor.mod

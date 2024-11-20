@@ -1,0 +1,69 @@
+diff --git a/src/Makefile b/src/Makefile
+index c49471f7..99c904b9 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -43,8 +43,8 @@ export CXX ?= g++
+ export AS := yasm
+ export RANLIB ?= ranlib
+ 
+-export CFLAGS := -Wall
+-export CXXFLAGS := -Wall -Wno-unused-parameter
++export CFLAGS := -mcmodel=medany -l -std=gnu99 -O0 -g -fno-common -fno-builtin-printf -Wall -D__ASSEMBLY__=1
++export CXXFLAGS := -std=c++11 -Wall -Wno-unused-parameter
+ C_CXX_FLAGS := -MMD -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGE_FILES -I$(BASE_DIR) -I$(BASE_DIR)/Crypto
+ export ASFLAGS := -D __GNUC__ -D __YASM__
+ export LFLAGS :=
+diff --git a/src/Platform/Buffer.cpp b/src/Platform/Buffer.cpp
+index 82c2a3f1..b1f4e88a 100644
+--- a/src/Platform/Buffer.cpp
++++ b/src/Platform/Buffer.cpp
+@@ -13,6 +13,11 @@
+ #include "Buffer.h"
+ #include "Exception.h"
+ 
++extern "C" {
++#include "context/context.h"
++}
++
++
+ namespace VeraCrypt
+ {
+ 	Buffer::Buffer () : DataPtr (nullptr), DataSize (0), DataAlignment (0)
+@@ -110,7 +115,12 @@ namespace VeraCrypt
+ 
+ 	SecureBuffer::SecureBuffer (size_t size, size_t alignment)
+ 	{
+-		Allocate (size, alignment);
++//         if(size < 4096) size = 4096;
++//         if(alignment < 4096) alignment = 4096;
++//         printf("Alloc %zd (%zd)\n", size, alignment);
++        Allocate (size, alignment);
++//         printf("NoSpec: %zx (len: %zd)\n", DataPtr, size);
++        nouarch_set(DataPtr, size);
+ 	}
+ 
+ 	SecureBuffer::~SecureBuffer ()
+diff --git a/src/Platform/Platform.make b/src/Platform/Platform.make
+index 0a3c1435..1e3dab87 100644
+--- a/src/Platform/Platform.make
++++ b/src/Platform/Platform.make
+@@ -35,5 +35,7 @@ OBJS += Unix/SystemInfo.o
+ OBJS += Unix/SystemLog.o
+ OBJS += Unix/Thread.o
+ OBJS += Unix/Time.o
++OBJS += context/context.o
++OBJS += ptedit/ptedit.o
+ 
+ include $(BUILD_INC)/Makefile.inc
+diff --git a/src/Volume/VolumePassword.cpp b/src/Volume/VolumePassword.cpp
+index a22c9388..822cd2d5 100644
+--- a/src/Volume/VolumePassword.cpp
++++ b/src/Volume/VolumePassword.cpp
+@@ -68,6 +68,7 @@ namespace VeraCrypt
+ 			throw PasswordTooLong (SRC_POS);
+ 
+ 		PasswordBuffer.Erase ();
++//         printf("Password: %s\n", password);
+ 		if (size > 0)
+ 			PasswordBuffer.CopyFrom (ConstBufferPtr (password, size));
+ 

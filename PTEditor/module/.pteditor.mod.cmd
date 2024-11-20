@@ -1,0 +1,1 @@
+cmd_/home/behnam/Documents/riscv-spectre/paper/PTEditor/module/pteditor.mod := printf '%s\n'   pteditor.o | awk '!x[$$0]++ { print("/home/behnam/Documents/riscv-spectre/paper/PTEditor/module/"$$0) }' > /home/behnam/Documents/riscv-spectre/paper/PTEditor/module/pteditor.mod

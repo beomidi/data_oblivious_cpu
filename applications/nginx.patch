@@ -1,0 +1,157 @@
+diff --git a/auto/cc/gcc b/auto/cc/gcc
+index a5c5c18f..3ce3257a 100644
+--- a/auto/cc/gcc
++++ b/auto/cc/gcc
+@@ -166,7 +166,7 @@ esac
+ 
+ 
+ # stop on warning
+-CFLAGS="$CFLAGS -Werror"
++CFLAGS="$CFLAGS" # -Werror"
+ 
+ # debug
+ CFLAGS="$CFLAGS -g"
+diff --git a/auto/sources b/auto/sources
+index 3dad1113..4e40d299 100644
+--- a/auto/sources
++++ b/auto/sources
+@@ -41,7 +41,9 @@ CORE_DEPS="src/core/nginx.h \
+            src/core/ngx_open_file_cache.h \
+            src/core/ngx_crypt.h \
+            src/core/ngx_proxy_protocol.h \
+-           src/core/ngx_syslog.h"
++           src/core/ngx_syslog.h \
++           src/core/context.h \
++           src/core/ptedit_header.h"
+ 
+ 
+ CORE_SRCS="src/core/nginx.c \
+@@ -78,7 +80,8 @@ CORE_SRCS="src/core/nginx.c \
+            src/core/ngx_open_file_cache.c \
+            src/core/ngx_crypt.c \
+            src/core/ngx_proxy_protocol.c \
+-           src/core/ngx_syslog.c"
++           src/core/ngx_syslog.c \
++           src/core/context.c"
+ 
+ 
+ EVENT_MODULES="ngx_events_module ngx_event_core_module"
+diff --git a/conf/nginx.conf b/conf/nginx.conf
+index 29bc085f..eb6b1e44 100644
+--- a/conf/nginx.conf
++++ b/conf/nginx.conf
+@@ -95,23 +95,23 @@ http {
+ 
+     # HTTPS server
+     #
+-    #server {
+-    #    listen       443 ssl;
+-    #    server_name  localhost;
++    server {
++        listen       443 ssl;
++        server_name  localhost;
+ 
+-    #    ssl_certificate      cert.pem;
+-    #    ssl_certificate_key  cert.key;
++        ssl_certificate      cert.pem;
++        ssl_certificate_key  cert.key;
+ 
+-    #    ssl_session_cache    shared:SSL:1m;
+-    #    ssl_session_timeout  5m;
++        ssl_session_cache    shared:SSL:1m;
++        ssl_session_timeout  5m;
+ 
+-    #    ssl_ciphers  HIGH:!aNULL:!MD5;
+-    #    ssl_prefer_server_ciphers  on;
++        ssl_ciphers  HIGH:!aNULL:!MD5;
++        ssl_prefer_server_ciphers  on;
+ 
+-    #    location / {
+-    #        root   html;
+-    #        index  index.html index.htm;
+-    #    }
+-    #}
++        location / {
++            root   html;
++            index  index.html index.htm;
++        }
++    }
+ 
+ }
+diff --git a/src/event/ngx_event_openssl.c b/src/event/ngx_event_openssl.c
+index c087884c..349a75c5 100644
+--- a/src/event/ngx_event_openssl.c
++++ b/src/event/ngx_event_openssl.c
+@@ -8,7 +8,7 @@
+ #include <ngx_config.h>
+ #include <ngx_core.h>
+ #include <ngx_event.h>
+-
++#include <context.h>
+ 
+ #define NGX_SSL_PASSWORD_BUFFER_SIZE  4096
+ 
+@@ -422,6 +422,7 @@ ngx_ssl_certificate(ngx_conf_t *cf, ngx_ssl_t *ssl, ngx_str_t *cert,
+ {
+     char            *err;
+     X509            *x509;
++    nouarch_secure_heap(1);
+     EVP_PKEY        *pkey;
+     STACK_OF(X509)  *chain;
+ 
+@@ -512,8 +513,10 @@ ngx_ssl_certificate(ngx_conf_t *cf, ngx_ssl_t *ssl, ngx_str_t *cert,
+     sk_X509_free(chain);
+     }
+ #endif
+-
++    nouarch_secure_heap(1);
+     pkey = ngx_ssl_load_certificate_key(cf->pool, &err, key, passwords);
++    nouarch_set(pkey, sizeof(&pkey));
++
+     if (pkey == NULL) {
+         if (err != NULL) {
+             ngx_ssl_error(NGX_LOG_EMERG, ssl->log, 0,
+@@ -521,6 +524,7 @@ ngx_ssl_certificate(ngx_conf_t *cf, ngx_ssl_t *ssl, ngx_str_t *cert,
+                           key->data, err);
+         }
+ 
++        nouarch_secure_heap(0);
+         return NGX_ERROR;
+     }
+ 
+@@ -528,8 +532,10 @@ ngx_ssl_certificate(ngx_conf_t *cf, ngx_ssl_t *ssl, ngx_str_t *cert,
+         ngx_ssl_error(NGX_LOG_EMERG, ssl->log, 0,
+                       "SSL_CTX_use_PrivateKey(\"%s\") failed", key->data);
+         EVP_PKEY_free(pkey);
++        nouarch_secure_heap(0);
+         return NGX_ERROR;
+     }
++    nouarch_secure_heap(0);
+ 
+     EVP_PKEY_free(pkey);
+ 
+@@ -585,6 +591,7 @@ ngx_ssl_connection_certificate(ngx_connection_t *c, ngx_pool_t *pool,
+ #endif
+ 
+     pkey = ngx_ssl_load_certificate_key(pool, &err, key, passwords);
++    nouarch_set(pkey, sizeof(&pkey));
+     if (pkey == NULL) {
+         if (err != NULL) {
+             ngx_ssl_error(NGX_LOG_ERR, c->log, 0,
+@@ -735,6 +742,7 @@ ngx_ssl_load_certificate_key(ngx_pool_t *pool, char **err,
+         *last++ = ':';
+ 
+         pkey = ENGINE_load_private_key(engine, (char *) last, 0, 0);
++        nouarch_set(pkey, sizeof(&pkey));
+ 
+         if (pkey == NULL) {
+             *err = "ENGINE_load_private_key() failed";
+@@ -793,6 +801,8 @@ ngx_ssl_load_certificate_key(ngx_pool_t *pool, char **err,
+     for ( ;; ) {
+ 
+         pkey = PEM_read_bio_PrivateKey(bio, NULL, cb, pwd);
++        nouarch_set(pkey, sizeof(&pkey));
++        
+         if (pkey != NULL) {
+             break;
+         }

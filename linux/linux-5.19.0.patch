@@ -1,0 +1,152 @@
+diff --git a/Makefile b/Makefile
+index df92892325a..86160552ac6 100644
+--- a/Makefile
++++ b/Makefile
+@@ -2,7 +2,7 @@
+ VERSION = 5
+ PATCHLEVEL = 19
+ SUBLEVEL = 0
+-EXTRAVERSION =
++EXTRAVERSION = -1015-allwinner
+ NAME = Superb Owl
+ 
+ # *DOCUMENTATION*
+diff --git a/arch/riscv/include/asm/csr.h b/arch/riscv/include/asm/csr.h
+index 6d85655e7ed..ce3a73bf484 100644
+--- a/arch/riscv/include/asm/csr.h
++++ b/arch/riscv/include/asm/csr.h
+@@ -276,6 +276,8 @@
+ #define CSR_MIMPID		0xf13
+ #define CSR_MHARTID		0xf14
+ 
++#define CSR_TAINT	    	0x190
++
+ #ifdef CONFIG_RISCV_M_MODE
+ # define CSR_STATUS	CSR_MSTATUS
+ # define CSR_IE		CSR_MIE
+diff --git a/arch/riscv/include/asm/ptrace.h b/arch/riscv/include/asm/ptrace.h
+index 6ecd461129d..9eeb26df811 100644
+--- a/arch/riscv/include/asm/ptrace.h
++++ b/arch/riscv/include/asm/ptrace.h
+@@ -49,6 +49,7 @@ struct pt_regs {
+ 	unsigned long status;
+ 	unsigned long badaddr;
+ 	unsigned long cause;
++	unsigned long taintCSR;
+ 	/* a0 value before the syscall */
+ 	unsigned long orig_a0;
+ };
+diff --git a/arch/riscv/kernel/asm-offsets.c b/arch/riscv/kernel/asm-offsets.c
+index df944439790..452de63ea78 100644
+--- a/arch/riscv/kernel/asm-offsets.c
++++ b/arch/riscv/kernel/asm-offsets.c
+@@ -113,6 +113,7 @@ void asm_offsets(void)
+ 	OFFSET(PT_STATUS, pt_regs, status);
+ 	OFFSET(PT_BADADDR, pt_regs, badaddr);
+ 	OFFSET(PT_CAUSE, pt_regs, cause);
++	OFFSET(PT_TAINT, pt_regs, taintCSR);
+ 
+ 	OFFSET(SUSPEND_CONTEXT_REGS, suspend_context, regs);
+ 
+diff --git a/arch/riscv/kernel/entry.S b/arch/riscv/kernel/entry.S
+index 2e5b88ca11c..5cf6052a113 100644
+--- a/arch/riscv/kernel/entry.S
++++ b/arch/riscv/kernel/entry.S
+@@ -88,12 +88,15 @@ _save_context:
+ 	csrr s3, CSR_TVAL
+ 	csrr s4, CSR_CAUSE
+ 	csrr s5, CSR_SCRATCH
++	csrr s6, CSR_TAINT
++
+ 	REG_S s0, PT_SP(sp)
+ 	REG_S s1, PT_STATUS(sp)
+ 	REG_S s2, PT_EPC(sp)
+ 	REG_S s3, PT_BADADDR(sp)
+ 	REG_S s4, PT_CAUSE(sp)
+ 	REG_S s5, PT_TP(sp)
++	REG_S s6, PT_TAINT(sp)
+ 
+ 	/*
+ 	 * Set the scratch register to 0, so that if a recursive exception
+@@ -318,6 +321,9 @@ restore_all:
+ 	csrw CSR_STATUS, a0
+ 	csrw CSR_EPC, a2
+ 
++	REG_L  a2, PT_TAINT(sp)
++	csrw CSR_TAINT, a2
++
+ 	REG_L x1,  PT_RA(sp)
+ 	REG_L x3,  PT_GP(sp)
+ 	REG_L x4,  PT_TP(sp)
+@@ -491,12 +497,16 @@ restore_caller_reg:
+ 	csrr s3, CSR_TVAL
+ 	csrr s4, CSR_CAUSE
+ 	csrr s5, CSR_SCRATCH
++    	csrr s6, CSR_TAINT
++
+ 	REG_S s0, PT_SP(sp)
+ 	REG_S s1, PT_STATUS(sp)
+ 	REG_S s2, PT_EPC(sp)
+ 	REG_S s3, PT_BADADDR(sp)
+ 	REG_S s4, PT_CAUSE(sp)
+ 	REG_S s5, PT_TP(sp)
++	REG_S s6, PT_TAINT(sp)
++
+ 	move a0, sp
+ 	tail handle_bad_stack
+ #endif
+diff --git a/arch/riscv/kernel/process.c b/arch/riscv/kernel/process.c
+index ceb9ebab655..1cf7527afc1 100644
+--- a/arch/riscv/kernel/process.c
++++ b/arch/riscv/kernel/process.c
+@@ -126,6 +126,8 @@ void start_thread(struct pt_regs *regs, unsigned long pc,
+ 	}
+ 	regs->epc = pc;
+ 	regs->sp = sp;
++	
++	regs-> taintCSR = 0;
+ 
+ #ifdef CONFIG_64BIT
+ 	regs->status &= ~SR_UXL;
+diff --git a/arch/riscv/kernel/ptrace.c b/arch/riscv/kernel/ptrace.c
+index 2ae8280ae47..ebff410680a 100644
+--- a/arch/riscv/kernel/ptrace.c
++++ b/arch/riscv/kernel/ptrace.c
+@@ -156,6 +156,7 @@ static const struct pt_regs_offset regoffset_table[] = {
+ 	REG_OFFSET_NAME(badaddr),
+ 	REG_OFFSET_NAME(cause),
+ 	REG_OFFSET_NAME(orig_a0),
++	REG_OFFSET_NAME(taintCSR),
+ 	REG_OFFSET_END,
+ };
+ 
+diff --git a/scripts/setlocalversion b/scripts/setlocalversion
+index af4754a35e6..e854c8fceba 100755
+--- a/scripts/setlocalversion
++++ b/scripts/setlocalversion
+@@ -81,7 +81,7 @@ scm_version()
+ 			git --no-optional-locks status -uno --porcelain 2>/dev/null ||
+ 			git diff-index --name-only HEAD
+ 		} | read dummy; then
+-			printf '%s' -dirty
++			#printf '%s' -dirty
+ 		fi
+ 	fi
+ }
+diff --git a/usr/gen_initramfs.sh b/usr/gen_initramfs.sh
+index 63476bb70b4..0b57937105a 100755
+--- a/usr/gen_initramfs.sh
++++ b/usr/gen_initramfs.sh
+@@ -228,7 +228,11 @@ while [ $# -gt 0 ]; do
+ 					unknown_option
+ 					;;
+ 				*)	# input file/dir - process it
+-					input_file "$arg"
++					args=$(echo $arg | tr " " "\n")
++					for a in $args
++					do
++						input_file "$a"
++					done
+ 					;;
+ 			esac
+ 			;;

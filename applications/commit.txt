@@ -1,0 +1,5 @@
+nginx			: e56ba23158b8466d108fd4d571bd7d9a88f2a473
+lastpass-ci		: cba284ee4177e3cecec589736c044d42f8077ca7
+veracrypt		: a505f3d98b826775b03e693c55c7e2ea82288ed5
+openssl			: 288e9680399d3a755861d309058dda2fb48af8bf
+openssh-portable	: fd0fa130ecf06d7d092932adcd5d77f1549bfc8d

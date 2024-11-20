@@ -1,0 +1,1 @@
+cmd_/home/behnam/Documents/riscv-spectre/paper/PTEditor/module/Module.symvers := sed 's/ko$$/o/' /home/behnam/Documents/riscv-spectre/paper/PTEditor/module/modules.order | scripts/mod/modpost    -o /home/behnam/Documents/riscv-spectre/paper/PTEditor/module/Module.symvers -e -i Module.symvers   -T -

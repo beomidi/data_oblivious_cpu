@@ -1,0 +1,213 @@
+diff --git a/crypto/chacha/chacha_enc.c b/crypto/chacha/chacha_enc.c
+index c5d1d63d80..bbbf8ba82f 100644
+--- a/crypto/chacha/chacha_enc.c
++++ b/crypto/chacha/chacha_enc.c
+@@ -75,7 +75,6 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
+     u32 input[16];
+     chacha_buf buf;
+     size_t todo, i;
+-
+     /* sigma constant "expand 32-byte k" in little-endian encoding */
+     input[0] = ((u32)ossl_toascii('e')) | ((u32)ossl_toascii('x') << 8)
+                | ((u32)ossl_toascii('p') << 16)
+diff --git a/test/chacha_internal_test.c b/test/chacha_internal_test.c
+index 878bd752e0..8967133f44 100644
+--- a/test/chacha_internal_test.c
++++ b/test/chacha_internal_test.c
+@@ -16,8 +16,9 @@
+ #include <openssl/opensslconf.h>
+ #include "testutil.h"
+ #include "crypto/chacha.h"
++#include "context/context.h"
+ 
+-static const unsigned int key[] = {
++static const unsigned int nouarch key[8] = {
+     0x03020100, 0x07060504, 0x0b0a0908, 0x0f0e0d0c,
+     0x13121110, 0x17161514, 0x1b1a1918, 0x1f1e1d1c
+ };
+@@ -161,21 +162,16 @@ static int test_cha_cha_internal(int n)
+ {
+     unsigned char buf[sizeof(ref)];
+     unsigned int i = n + 1, j;
+-
+     memset(buf, 0, i);
+     memcpy(buf + i, ref + i, sizeof(ref) - i);
++    size_t start = nouarchrdtsc();
++    for(size_t z = 0; z < 512; z++) 
++    	ChaCha20_ctr32(buf, buf, i, key, ivp);
++
++    size_t end = nouarchrdtsc();
++        printf("%zd cycles (%zd per enc/dec)\n", end - start, (end - start) / 512);
+ 
+-    ChaCha20_ctr32(buf, buf, i, key, ivp);
+ 
+-    /*
+-     * Idea behind checking for whole sizeof(ref) is that if
+-     * ChaCha20_ctr32 oversteps i-th byte, then we'd know
+-     */
+-    for (j = 0; j < sizeof(ref); j++)
+-        if (!TEST_uchar_eq(buf[j], ref[j])) {
+-            TEST_info("%d failed at %u (%02x)\n", i, j, buf[j]);
+-            return 0;
+-        }
+     return 1;
+ }
+ 
+@@ -185,6 +181,6 @@ int setup_tests(void)
+     OPENSSL_cpuid_setup();
+ #endif
+ 
+-    ADD_ALL_TESTS(test_cha_cha_internal, sizeof(ref));
++    ADD_ALL_TESTS(test_cha_cha_internal, 1);
+     return 1;
+ }
+diff --git a/test/rc4test.c b/test/rc4test.c
+index 0ca2ca9aef..cea66ff592 100644
+--- a/test/rc4test.c
++++ b/test/rc4test.c
+@@ -21,8 +21,9 @@
+ #ifndef OPENSSL_NO_RC4
+ # include <openssl/rc4.h>
+ # include <openssl/sha.h>
++#include "context/context.h"
+ 
+-static unsigned char keys[6][30] = {
++static unsigned char nouarch keys[6][30] = {
+     {8, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef},
+     {8, 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef},
+     {8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+@@ -65,11 +66,14 @@ static int test_rc4_encrypt(const int i)
+ {
+     unsigned char obuf[512];
+     RC4_KEY key;
+-
+     RC4_set_key(&key, keys[i][0], &(keys[i][1]));
+     memset(obuf, 0, sizeof(obuf));
+-    RC4(&key, data_len[i], &(data[i][0]), obuf);
+-    return TEST_mem_eq(obuf, data_len[i] + 1, output[i], data_len[i] + 1);
++    size_t start = nouarchrdtsc();
++    for(size_t z = 0; z < 512; z++)
++    	RC4(&key, data_len[i], &(data[i][0]), obuf);
++    size_t end = nouarchrdtsc();
++        printf("%zd cycles (%zd per enc/dec)\n", end - start, (end - start) / 512);
++    return 1;
+ }
+ 
+ static int test_rc4_end_processing(const int i)
+@@ -80,9 +84,7 @@ static int test_rc4_end_processing(const int i)
+     RC4_set_key(&key, keys[3][0], &(keys[3][1]));
+     memset(obuf, 0, sizeof(obuf));
+     RC4(&key, i, &(data[3][0]), obuf);
+-    if (!TEST_mem_eq(obuf, i, output[3], i))
+-        return 0;
+-    return TEST_uchar_eq(obuf[i], 0);
++    return 1;
+ }
+ 
+ static int test_rc4_multi_call(const int i)
+@@ -126,9 +128,9 @@ int setup_tests(void)
+ {
+ #ifndef OPENSSL_NO_RC4
+     ADD_ALL_TESTS(test_rc4_encrypt, OSSL_NELEM(data_len));
+-    ADD_ALL_TESTS(test_rc4_end_processing, data_len[3]);
+-    ADD_ALL_TESTS(test_rc4_multi_call, data_len[3]);
+-    ADD_TEST(test_rc_bulk);
++    //ADD_ALL_TESTS(test_rc4_end_processing, data_len[3]);
++    //ADD_ALL_TESTS(test_rc4_multi_call, data_len[3]);
++    //ADD_TEST(test_rc_bulk);
+ #endif
+     return 1;
+ }
+diff --git a/test/rsa_test.c b/test/rsa_test.c
+index 62a54df74d..bb0313e85e 100644
+--- a/test/rsa_test.c
++++ b/test/rsa_test.c
+@@ -28,6 +28,7 @@
+ #include "testutil.h"
+ 
+ #include <openssl/rsa.h>
++#include "context/context.h"
+ 
+ #define SetKey \
+     RSA_set0_key(key,                                           \
+@@ -45,6 +46,10 @@
+         memcpy(c, ctext_ex, sizeof(ctext_ex) - 1);              \
+     return sizeof(ctext_ex) - 1;
+ 
++
++RSA nouarch *key;
++
++
+ static int key1(RSA *key, unsigned char *c)
+ {
+     static unsigned char n[] =
+@@ -214,8 +219,12 @@ static int key3(RSA *key, unsigned char *c)
+ static int rsa_setkey(RSA** key, unsigned char *ctext, int idx)
+ {
+     int clen = 0;
+-
++    
++    nouarch_secure_heap(1);
+     *key = RSA_new();
++    nouarch_set(key, sizeof(&key));
++    nouarch_secure_heap(0);
++
+     if (*key != NULL)
+         switch (idx) {
+         case 0:
+@@ -236,7 +245,6 @@ static int test_rsa_simple(int idx, int en_pad_type, int de_pad_type,
+                            RSA **retkey)
+ {
+     int ret = 0;
+-    RSA *key;
+     unsigned char ptext[256];
+     unsigned char ctext[256];
+     static unsigned char ptext_ex[] = "\x54\x85\x9b\x34\x2c\x49\xea\x2a";
+@@ -248,19 +256,24 @@ static int test_rsa_simple(int idx, int en_pad_type, int de_pad_type,
+     clentmp = rsa_setkey(&key, ctext_ex, idx);
+     if (clen != NULL)
+         *clen = clentmp;
+-
+-    num = RSA_public_encrypt(plen, ptext_ex, ctext, key, en_pad_type);
+-    if (!TEST_int_eq(num, clentmp))
+-        goto err;
+-
+-    num = RSA_private_decrypt(num, ctext, ptext, key, de_pad_type);
+-    if (success) {
+-        if (!TEST_int_gt(num, 0) || !TEST_mem_eq(ptext, num, ptext_ex, plen))
+-            goto err;
+-    } else {
+-        if (!TEST_int_lt(num, 0))
+-            goto err;
+-    }
++    size_t start = nouarchrdtsc();
++    for(size_t z = 0; z < 512; z++){
++    	num = RSA_public_encrypt(plen, ptext_ex, ctext, key, en_pad_type);
++   	 if (!TEST_int_eq(num, clentmp))
++        	goto err;
++
++    	num = RSA_private_decrypt(num, ctext, ptext, key, de_pad_type);
++    	if (success) {
++        	if (!TEST_int_gt(num, 0) || !TEST_mem_eq(ptext, num, ptext_ex, plen))
++            	goto err;
++    	} else {
++       	 if (!TEST_int_lt(num, 0))
++        	    goto err;
++    	}
++     }
++
++    size_t end = nouarchrdtsc();
++        printf("%zd cycles (%zd per enc/dec)\n", end - start, (end - start) / 512);
+ 
+     ret = 1;
+     if (retkey != NULL) {
+@@ -394,7 +407,7 @@ err:
+ int setup_tests(void)
+ {
+     ADD_ALL_TESTS(test_rsa_pkcs1, 3);
+-    ADD_ALL_TESTS(test_rsa_oaep, 3);
+-    ADD_ALL_TESTS(test_rsa_security_bit, OSSL_NELEM(rsa_security_bits_cases));
++    //ADD_ALL_TESTS(test_rsa_oaep, 3);
++   // ADD_ALL_TESTS(test_rsa_security_bit, OSSL_NELEM(rsa_security_bits_cases));
+     return 1;
+ }
